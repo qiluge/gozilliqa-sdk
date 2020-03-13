@@ -42,3 +42,22 @@ func ParseBlockHeight(rpcResult *jsonrpc.RPCResponse) (uint64, error) {
 		return 0, fmt.Errorf("ParseBlockHeight: type unmatch")
 	}
 }
+
+func ParseCreateTxResult(rpcResult *jsonrpc.RPCResponse) (info string, contract string, hash string, err error) {
+	type Result struct {
+		ContractAddress string
+		Info            string
+		TranID          string
+	}
+	jsonResult, err := json.Marshal(rpcResult.Result)
+	if err != nil {
+		err = fmt.Errorf("ParseCreateTxResult: marshal rpc result, %s", err)
+		return
+	}
+	result := &Result{}
+	if err = json.Unmarshal(jsonResult, &result); err != nil {
+		err = fmt.Errorf("ParseCreateTxResult: unmarshal result, %s", err)
+		return
+	}
+	return result.Info, result.ContractAddress, result.TranID, nil
+}
