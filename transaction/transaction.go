@@ -9,6 +9,7 @@ import (
 
 	"github.com/Zilliqa/gozilliqa-sdk/provider"
 	"github.com/Zilliqa/gozilliqa-sdk/util"
+	"github.com/ybbus/jsonrpc"
 )
 
 type State int
@@ -191,4 +192,16 @@ func (t *Transaction) isConfirmed() bool {
 
 func (t *Transaction) isRejected() bool {
 	return t.Status == Rejected
+}
+
+func ParseTxFromRpc(rpcResult *jsonrpc.RPCResponse) (*Transaction, error) {
+	jsonResult, err := json.Marshal(rpcResult.Result)
+	if err != nil {
+		return nil, fmt.Errorf("ParseTx: marshal rpc result, %s", err)
+	}
+	result := &Transaction{}
+	if err := json.Unmarshal(jsonResult, &result); err != nil {
+		return nil, fmt.Errorf("ParseTx: unmarshal result, %s", err)
+	}
+	return result, nil
 }
