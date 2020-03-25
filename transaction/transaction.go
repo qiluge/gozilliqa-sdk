@@ -195,6 +195,10 @@ func (t *Transaction) isRejected() bool {
 }
 
 func ParseTxFromRpc(rpcResult *jsonrpc.RPCResponse) (*Transaction, error) {
+	if rpcResult.Error != nil {
+		return nil, fmt.Errorf("ParseTxFromRpc: resp code %d, msg %s", rpcResult.Error.Code,
+			rpcResult.Error.Message)
+	}
 	jsonResult, err := json.Marshal(rpcResult.Result)
 	if err != nil {
 		return nil, fmt.Errorf("ParseTx: marshal rpc result, %s", err)

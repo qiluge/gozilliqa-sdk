@@ -4,10 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ybbus/jsonrpc"
+	"math/big"
 	"strconv"
 )
 
 func ParseTxBlock(rpcResult *jsonrpc.RPCResponse) (*TxBlock, error) {
+	if rpcResult.Error != nil {
+		return nil, fmt.Errorf("ParseTxBlock: resp code %d, msg %s", rpcResult.Error.Code,
+			rpcResult.Error.Message)
+	}
 	jsonResult, err := json.Marshal(rpcResult.Result)
 	if err != nil {
 		return nil, fmt.Errorf("ParseTxBlock: marshal rpc result, %s", err)
@@ -20,6 +25,10 @@ func ParseTxBlock(rpcResult *jsonrpc.RPCResponse) (*TxBlock, error) {
 }
 
 func ParseTxHashArray(rpcResult *jsonrpc.RPCResponse) ([][]string, error) {
+	if rpcResult.Error != nil {
+		return nil, fmt.Errorf("ParseTxHashArray: resp code %d, msg %s", rpcResult.Error.Code,
+			rpcResult.Error.Message)
+	}
 	jsonResult, err := json.Marshal(rpcResult.Result)
 	if err != nil {
 		return nil, fmt.Errorf("ParseTxHashArray: marshal rpc result, %s", err)
@@ -32,6 +41,10 @@ func ParseTxHashArray(rpcResult *jsonrpc.RPCResponse) ([][]string, error) {
 }
 
 func ParseBlockHeight(rpcResult *jsonrpc.RPCResponse) (uint64, error) {
+	if rpcResult.Error != nil {
+		return 0, fmt.Errorf("ParseBlockHeight: resp code %d, msg %s", rpcResult.Error.Code,
+			rpcResult.Error.Message)
+	}
 	if heightString, ok := rpcResult.Result.(string); ok {
 		height, err := strconv.ParseUint(heightString, 10, 64)
 		if err != nil {
@@ -44,6 +57,10 @@ func ParseBlockHeight(rpcResult *jsonrpc.RPCResponse) (uint64, error) {
 }
 
 func ParseCreateTxResult(rpcResult *jsonrpc.RPCResponse) (info string, contract string, hash string, err error) {
+	if rpcResult.Error != nil {
+		return "", "", "", fmt.Errorf("ParseCreateTxResult: resp code %d, msg %s",
+			rpcResult.Error.Code, rpcResult.Error.Message)
+	}
 	type Result struct {
 		ContractAddress string
 		Info            string
@@ -60,4 +77,28 @@ func ParseCreateTxResult(rpcResult *jsonrpc.RPCResponse) (info string, contract 
 		return
 	}
 	return result.Info, result.ContractAddress, result.TranID, nil
+}
+
+func ParseBalanceResp(rpcResult *jsonrpc.RPCResponse) (*big.Int, uint64, error) {
+	if rpcResult.Error != nil {
+		return nil, 0, fmt.Errorf("ParseBalanceResp: resp code %d, msg %s", rpcResult.Error.Code,
+			rpcResult.Error.Message)
+	}
+	type Balance struct {
+		Balance string `json:"balance"`
+		Nonce   uint64 `json:"nonce"`
+	}
+	jsonResult, err := json.Marshal(rpcResult.Result)
+	if err != nil {
+		return nil, 0, fmt.Errorf("ParseBalanceResp: marshal rpc result, %s", err)
+	}
+	result := &Balance{}
+	if err = json.Unmarshal(jsonResult, &result); err != nil {
+		return nil, 0, fmt.Errorf("ParseBalanceResp: unmarshal result, %s", err)
+	}
+	balance, ok := new(big.Int).SetString(result.Balance, 10)
+	if !ok {
+		return nil, 0, fmt.Errorf("ParseBalanceResp: balance %s invalid", result.Balance)
+	}
+	return balance, result.Nonce, nil
 }
