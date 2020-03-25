@@ -8,6 +8,8 @@ import (
 	"strconv"
 )
 
+var EmptyBlock = fmt.Errorf("empty block")
+
 func ParseTxBlock(rpcResult *jsonrpc.RPCResponse) (*TxBlock, error) {
 	if rpcResult.Error != nil {
 		return nil, fmt.Errorf("ParseTxBlock: resp code %d, msg %s", rpcResult.Error.Code,
@@ -26,6 +28,9 @@ func ParseTxBlock(rpcResult *jsonrpc.RPCResponse) (*TxBlock, error) {
 
 func ParseTxHashArray(rpcResult *jsonrpc.RPCResponse) ([][]string, error) {
 	if rpcResult.Error != nil {
+		if rpcResult.Error.Code == -1 {
+			return nil, EmptyBlock
+		}
 		return nil, fmt.Errorf("ParseTxHashArray: resp code %d, msg %s", rpcResult.Error.Code,
 			rpcResult.Error.Message)
 	}
