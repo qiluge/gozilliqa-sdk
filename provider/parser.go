@@ -28,7 +28,7 @@ func ParseTxBlock(rpcResult *jsonrpc.RPCResponse) (*TxBlock, error) {
 
 func ParseTxHashArray(rpcResult *jsonrpc.RPCResponse) ([][]string, error) {
 	if rpcResult.Error != nil {
-		if rpcResult.Error.Code == -1 {
+		if rpcResult.Error.Message == "TxBlock has no transactions" {
 			return nil, EmptyBlock
 		}
 		return nil, fmt.Errorf("ParseTxHashArray: resp code %d, msg %s", rpcResult.Error.Code,
