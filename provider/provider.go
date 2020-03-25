@@ -20,7 +20,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/ybbus/jsonrpc"
 	"io/ioutil"
 	"net/http"
@@ -180,9 +179,6 @@ func (provider *Provider) GetMinerInfo(dsNumber string) (*jsonrpc.RPCResponse, e
 
 // Create a new Transaction object and send it to the network to be process.
 func (provider *Provider) CreateTransaction(payload TransactionPayload) (*jsonrpc.RPCResponse, error) {
-	r, _ := json.Marshal(payload)
-	fmt.Println(string(r))
-	//fmt.Println(payload)
 	return provider.call("CreateTransaction", &payload)
 }
 
