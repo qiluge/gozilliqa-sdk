@@ -107,3 +107,22 @@ func ParseBalanceResp(rpcResult *jsonrpc.RPCResponse) (*big.Int, uint64, error) 
 	}
 	return balance, result.Nonce, nil
 }
+
+func ParseGetContractCode(rpcResult *jsonrpc.RPCResponse) (code string, err error) {
+	if rpcResult.Error != nil {
+		return "", fmt.Errorf("ParseGetContractCode: resp code %d, msg %s", rpcResult.Error.Code,
+			rpcResult.Error.Message)
+	}
+	type Contract struct {
+		Code string `json:"code"`
+	}
+	jsonResult, err := json.Marshal(rpcResult.Result)
+	if err != nil {
+		return "", fmt.Errorf("ParseGetContractCode: marshal rpc result, %s", err)
+	}
+	result := &Contract{}
+	if err = json.Unmarshal(jsonResult, &result); err != nil {
+		return "", fmt.Errorf("ParseGetContractCode: unmarshal result, %s", err)
+	}
+	return result.Code, nil
+}
