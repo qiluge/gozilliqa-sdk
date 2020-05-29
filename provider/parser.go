@@ -9,6 +9,7 @@ import (
 )
 
 var EmptyBlock = fmt.Errorf("empty block")
+var NotContract = fmt.Errorf("Address not contract address")
 
 func ParseTxBlock(rpcResult *jsonrpc.RPCResponse) (*TxBlock, error) {
 	if rpcResult.Error != nil {
@@ -125,4 +126,23 @@ func ParseGetContractCode(rpcResult *jsonrpc.RPCResponse) (code string, err erro
 		return "", fmt.Errorf("ParseGetContractCode: unmarshal result, %s", err)
 	}
 	return result.Code, nil
+}
+
+func ParseGetContractInit(rpcResult *jsonrpc.RPCResponse) ([]Value, error) {
+	if rpcResult.Error != nil {
+		if rpcResult.Error.Message == "Address not contract address" {
+			return nil, NotContract
+		}
+		return nil, fmt.Errorf("ParseGetContractInit: resp code %d, msg %s", rpcResult.Error.Code,
+			rpcResult.Error.Message)
+	}
+	jsonResult, err := json.Marshal(rpcResult.Result)
+	if err != nil {
+		return nil, fmt.Errorf("ParseGetContractCode: marshal rpc result, %s", err)
+	}
+	result := make([]Value, 0)
+	if err = json.Unmarshal(jsonResult, &result); err != nil {
+		return nil, fmt.Errorf("ParseGetContractCode: unmarshal result, %s", err)
+	}
+	return result, nil
 }
